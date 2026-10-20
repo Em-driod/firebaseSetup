@@ -1,47 +1,87 @@
-# Firebase setup
+# CarePortal Firebase starter
 
-Shared Firebase config for the frontend team. Config values live in `.env`
-(gitignored) instead of hardcoded in source, so each dev/environment can
-point at a different Firebase project without touching code.
+This Vite app demonstrates Firebase email/password and Google sign-in, a
+Firestore user profile, and different starter dashboards for admins, doctors,
+and patients.
 
-## First-time setup
+## Setup
 
-```bash
-npm install
-cp .env.example .env
+1. Create/select a Firebase project and register a Web app.
+2. In **Authentication -> Sign-in method**, enable **Email/Password** and
+   **Google**. Add your development host under **Authentication -> Settings ->
+   Authorized domains** if it is not already listed.
+3. Create a **Cloud Firestore** database.
+4. Copy `.env.example` to `.env` and fill in the web app configuration values
+   from **Project settings -> General -> Your apps**. Do not commit `.env`.
+5. Install and run the app:
+
+   ```powershell
+   npm install
+   npm run dev
+   ```
+
+## How sign-in and roles work
+
+- Users can create an account with a name, email, and password, sign in with
+  email/password, or continue with Google. The Google button handles both a
+  first-time signup and a later sign-in.
+- A new user's Firestore profile is created at `users/{uid}` with the role
+  `patient`. Signing up does not let a user select or assign a privileged role.
+- After sign-in, the app reads the profile role and shows the corresponding
+  admin, doctor, or patient dashboard.
+- The dashboard cards are UI placeholders, not complete patient-management
+  features. A role-based UI is not itself an access-control boundary; apply
+  Firestore/Storage rules to every real data collection you add.
+- An account with no profile is safely initialized as a patient. A profile
+  with an unknown role is rejected rather than being given another dashboard.
+
+## Publish the Firestore rules and initialize an admin
+
+The included `firestore.rules` protects the user profiles:
+
+- Users can create only their own `patient` profile.
+- Users can read their own profile and change only their display name.
+- Only an administrator can list profiles or change a profile's role.
+
+Publish these rules in **Firebase Console -> Firestore Database -> Rules**.
+Alternatively, use the Firebase CLI after setting up Firebase in the project:
+
+```powershell
+firebase deploy --only firestore:rules
 ```
 
-Fill in `.env` with the values from **Firebase Console -> Project Settings ->
-General -> Your apps -> SDK setup and configuration**.
+To bootstrap the first administrator:
 
-```bash
-npm run dev
-```
+1. Sign up for your own account through the app. It will start as `patient`.
+2. In **Firestore Database -> Data**, open the `users` collection and the
+   document whose ID is your Firebase Authentication UID.
+3. Change that document's `role` field to the string `admin`.
+4. Sign out and sign in again. The admin dashboard should appear.
 
-Open the printed local URL - it should say "Connected to Firebase project: ..."
-with no errors. If it throws "Missing Firebase config values", `.env` isn't
-filled in yet.
+The Firebase Console is an administrative interface and can edit data outside
+the client security rules. Keep project-owner access limited to trusted
+administrators. Once an administrator exists, role changes can be made by an
+authorized administrator in a trusted admin workflow. This starter does not
+include a role-management screen or a server-side admin API.
 
-## Using it in your own code
+## Important security boundaries
 
-```js
-import { auth, db, storage } from "./src/firebase.js";
-import { collection, addDoc } from "firebase/firestore";
+The role controls which dashboard this starter displays, and Firestore rules
+protect the profile document. A hidden button or a different dashboard is not
+security: when you add app data, write rules for those collections that check
+the authenticated user's role and, where appropriate, their relationship to
+the record. Never put Firebase service-account credentials or private server
+secrets in the frontend.
 
-await addDoc(collection(db, "tasks"), { text: "example", done: false });
-```
+The web SDK configuration in `.env` is included in the client bundle at build
+time; it identifies the project and is not an authorization secret. `.env` is
+gitignored to keep per-environment configuration out of source control.
 
-Only ever import `app`/`auth`/`db`/`storage` from `src/firebase.js` -
-never call `initializeApp()` a second time somewhere else.
+## Project files
 
-## Rules, not secrets
-
-The values in `.env` (apiKey, projectId, etc.) identify your Firebase
-project - they are not secret and will be visible in the shipped JS bundle
-either way. Keeping them in `.env` is about not hardcoding
-per-environment values in source and not leaking them into `git log`
-by accident, not about hiding them from users.
-
-**Actual access control belongs in Firestore/Storage Security Rules**
-(Firebase Console -> Firestore/Storage -> Rules). Don't rely on the config
-being private.
+- `src/firebase.js`: one shared initialization point for Firebase Auth,
+  Firestore, and Storage.
+- `src/main.js`: signup, login, Google popup, profile creation, and role routing.
+- `src/styles.css`: responsive sign-in and dashboard styling.
+- `firestore.rules`: profile access rules; publish these to the Firebase
+  project before using the profile features.
