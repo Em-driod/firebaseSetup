@@ -1,8 +1,10 @@
 # CarePortal Firebase starter
 
-This Vite app demonstrates Firebase email/password and Google sign-in, a
-Firestore user profile, and different starter dashboards for admins, doctors,
-and patients.
+This React + Vite app demonstrates Firebase email/password and Google sign-in,
+a Firestore user profile, role-based dashboards for admins, doctors and
+patients, and page animations with Motion (formerly Framer Motion).
+
+See `TEACHING.md` for a lesson-by-lesson guide to the code.
 
 ## Setup
 
@@ -22,47 +24,34 @@ and patients.
 
 ## How sign-in and roles work
 
-- Users can create an account with a name, email, and password, sign in with
-  email/password, or continue with Google. The Google button handles both a
-  first-time signup and a later sign-in.
-- A new user's Firestore profile is created at `users/{uid}` with the role
-  `patient`. Signing up does not let a user select or assign a privileged role.
-- After sign-in, the app reads the profile role and shows the corresponding
-  admin, doctor, or patient dashboard.
-- The dashboard cards are UI placeholders, not complete patient-management
-  features. A role-based UI is not itself an access-control boundary; apply
-  Firestore/Storage rules to every real data collection you add.
-- An account with no profile is safely initialized as a patient. A profile
-  with an unknown role is rejected rather than being given another dashboard.
+- The landing page (`/`) links to sign up (`/signup`) and sign in (`/signin`).
+- Users can create an account with a name, email and password, or continue
+  with Google. On sign-up they choose **Patient** or **Doctor**.
+- **Admin cannot be chosen.** An email listed in `ADMIN_EMAILS`
+  (`src/auth/roles.js`) is recognised as admin automatically. The same list
+  is in `firestore.rules`; keep the two in sync.
+- The profile is stored at `users/{uid}` with the role. After sign-in the app
+  reads the role and redirects to `/admin`, `/doctor` or `/patient`.
+- The admin dashboard lists every user profile from Firestore. The doctor and
+  patient dashboards show example data.
 
-## Publish the Firestore rules and initialize an admin
+## Publish the Firestore rules and create the admin
 
-The included `firestore.rules` protects the user profiles:
+1. Replace `admin@careportal.com` with your email in both
+   `src/auth/roles.js` and `firestore.rules`.
+2. Publish the rules in **Firebase Console -> Firestore Database -> Rules**,
+   or with `firebase deploy --only firestore:rules`.
+3. Sign up with that email. The form shows "Admin email recognised" and you
+   land on the admin dashboard.
 
-- Users can create only their own `patient` profile.
-- Users can read their own profile and change only their display name.
-- Only an administrator can list profiles or change a profile's role.
+The rules let users create only their own profile, as doctor or patient, or
+as admin when their email is on the admin list. Users can change only their
+own display name. Only an admin can list profiles or change a role.
 
-Publish these rules in **Firebase Console -> Firestore Database -> Rules**.
-Alternatively, use the Firebase CLI after setting up Firebase in the project:
-
-```powershell
-firebase deploy --only firestore:rules
-```
-
-To bootstrap the first administrator:
-
-1. Sign up for your own account through the app. It will start as `patient`.
-2. In **Firestore Database -> Data**, open the `users` collection and the
-   document whose ID is your Firebase Authentication UID.
-3. Change that document's `role` field to the string `admin`.
-4. Sign out and sign in again. The admin dashboard should appear.
-
-The Firebase Console is an administrative interface and can edit data outside
-the client security rules. Keep project-owner access limited to trusted
-administrators. Once an administrator exists, role changes can be made by an
-authorized administrator in a trusted admin workflow. This starter does not
-include a role-management screen or a server-side admin API.
+With email/password sign-up, whoever registers an admin email first gets
+admin access, so create the admin account before sharing the app. In a real
+clinic, doctors should be approved by an admin instead of choosing the role
+themselves.
 
 ## Important security boundaries
 
@@ -79,9 +68,13 @@ gitignored to keep per-environment configuration out of source control.
 
 ## Project files
 
-- `src/firebase.js`: one shared initialization point for Firebase Auth,
-  Firestore, and Storage.
-- `src/main.js`: signup, login, Google popup, profile creation, and role routing.
-- `src/styles.css`: responsive sign-in and dashboard styling.
-- `firestore.rules`: profile access rules; publish these to the Firebase
-  project before using the profile features.
+- `src/App.jsx`: all routes, with `useLocation()` and `AnimatePresence` for
+  page transitions.
+- `src/main.jsx`: starts React with the router, auth provider and Motion config.
+- `src/firebase.js`: one shared initialization point for Firebase.
+- `src/auth/`: roles and admin emails, the auth context, and error messages.
+- `src/components/`: route guard, page transition, heartbeat line, form parts.
+- `src/pages/`: landing, sign in, sign up and the role dashboards.
+- `src/styles.css`: all styling, with light and dark colours.
+- `firestore.rules`: profile access rules; publish these before using the app.
+- `TEACHING.md`: the class guide.

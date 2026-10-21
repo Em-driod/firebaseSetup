@@ -3,85 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#f4f7fb" />
-  <title>Care Portal | Sign in</title>
+  <meta name="theme-color" content="#f4f7f5" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <title>CarePortal</title>
 </head>
 <body>
-  <main class="page-shell">
-    <section class="auth-layout" id="auth-view" aria-labelledby="auth-title">
-      <div class="intro-panel">
-        <a class="brand" href="#" aria-label="Care Portal home">
-          <span class="brand-mark" aria-hidden="true">+</span>
-          <span>Care<span class="brand-light">Portal</span></span>
-        </a>
-        <div class="intro-copy">
-          <p class="eyebrow">A connected care team</p>
-          <h1>Care that works better, together.</h1>
-          <p>Sign in to reach the tools and information for your role.</p>
-        </div>
-        <p class="intro-footnote">Secure access for administrators, doctors, and patients.</p>
-      </div>
-
-      <div class="form-panel">
-        <div class="form-wrap">
-          <p class="eyebrow form-eyebrow">WELCOME TO CAREPORTAL</p>
-          <h2 id="auth-title">Welcome back</h2>
-          <p class="muted" id="auth-description">Sign in to continue to your dashboard.</p>
-
-          <div class="notice" id="auth-message" role="status" aria-live="polite" hidden></div>
-
-          <form id="auth-form">
-            <label class="field" id="name-field" hidden>
-              <span>Full name</span>
-              <input id="name" name="name" type="text" autocomplete="name" maxlength="100" />
-            </label>
-            <label class="field">
-              <span>Email address</span>
-              <input id="email" name="email" type="email" autocomplete="email" required />
-            </label>
-            <label class="field">
-              <span>Password</span>
-              <input id="password" name="password" type="password" autocomplete="current-password" minlength="6" required />
-            </label>
-
-            <button class="button button-primary" id="submit-button" type="submit">Sign in</button>
-          </form>
-
-          <div class="divider"><span>or</span></div>
-          <button class="button button-google" id="google-button" type="button">
-            <span class="google-g" aria-hidden="true">G</span>
-            Continue with Google
-          </button>
-
-          <p class="switch-prompt">
-            <span id="switch-copy">New to CarePortal?</span>
-            <button class="text-button" id="switch-mode" type="button">Create an account</button>
-          </p>
-          <p class="small-print">New accounts are registered as patients. An administrator assigns doctor or admin access.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="dashboard" id="dashboard-view" aria-labelledby="dashboard-title" hidden>
-      <header class="dashboard-header">
-        <a class="brand dashboard-brand" href="#" aria-label="Care Portal home">
-          <span class="brand-mark" aria-hidden="true">+</span>
-          <span>Care<span class="brand-light">Portal</span></span>
-        </a>
-        <div class="account-actions">
-          <span class="account-email" id="account-email"></span>
-          <button class="button button-outline" id="signout-button" type="button">Sign out</button>
-        </div>
-      </header>
-      <div class="dashboard-content">
-        <p class="eyebrow" id="role-label"></p>
-        <h1 id="dashboard-title"></h1>
-        <p class="muted" id="dashboard-description"></p>
-        <div class="dashboard-grid" id="dashboard-cards"></div>
-        <p class="dashboard-note">This is a role-based dashboard starter. Connect these sections to your real app features as you build them.</p>
-      </div>
-    </section>
-  </main>
-  <script type="module" src="/src/main.js"></script>
+  <!-- React draws the whole app inside this one div. -->
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

@@ -1,14 +1,23 @@
 rules_version = '2';
 
+// These rules run on Google's servers. The React code can be changed by
+// anyone in their browser, these rules cannot. They are the real security.
+
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Keep this list the same as ADMIN_EMAILS in src/auth/roles.js
+    function adminEmails() {
+      return ["admin@careportal.com"];
+    }
+
     function signedIn() {
       return request.auth != null;
     }
 
+    // Admin is recognised by the email on the signed-in account.
     function isAdmin() {
-      return signedIn()
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      return signedIn() && request.auth.token.email.lower() in adminEmails();
     }
 
     function validRole(role) {
@@ -16,6 +25,8 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
+      // Create your OWN profile only. Doctor or patient is allowed;
+      // "admin" is allowed only if your email is on the admin list.
       allow create: if signedIn()
         && request.auth.uid == userId
         && request.resource.data.keys().hasOnly([
@@ -24,12 +35,17 @@ service cloud.firestore {
         && request.resource.data.uid == userId
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.displayName is string
-        && request.resource.data.role == "patient"
+        && (
+          request.resource.data.role in ["doctor", "patient"]
+          || (request.resource.data.role == "admin" && isAdmin())
+        )
         && request.resource.data.createdAt == request.time;
 
+      // Read your own profile. Admins can read everyone's.
       allow get: if signedIn() && (request.auth.uid == userId || isAdmin());
       allow list: if isAdmin();
 
+      // You can change your name. Only an admin can change a role.
       allow update: if signedIn()
         && (
           (
